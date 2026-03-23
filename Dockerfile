@@ -87,9 +87,7 @@ RUN composer install --no-dev --optimize-autoloader
 # Permissions
 RUN chmod -R 777 storage bootstrap/cache
 
-# Run migrations automatically
-RUN php artisan migrate --force || true
-
 EXPOSE 10000
 
-CMD php artisan serve --host=0.0.0.0 --port=10000
+# 🔥 RUN MIGRATION AT START TIME (IMPORTANT)
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000
