@@ -25,9 +25,10 @@ class DashboardController extends Controller
 
         $recentOrders = Order::with('user')->latest()->limit(5)->get();
 
-        $salesData = Order::select(
-                DB::raw('DATE(created_at) as date'),
-                DB::raw('SUM(total) as total')
+       $salesData = Order::select(
+    DB::raw('DATE(created_at) as date'),
+    DB::raw('SUM(total_amount) as total')
+)
             )
             ->where('payment_status', 'paid')
             ->where('created_at', '>=', now()->subDays(7))
