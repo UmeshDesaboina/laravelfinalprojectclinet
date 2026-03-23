@@ -115,5 +115,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/products/{product}/review', [ReviewController::class, 'store'])->name('reviews.store');
 });
+Route::get('/migrate', function () {
+    \Artisan::call('migrate', ['--force' => true]);
+    return "Migration done";
+});
 
 require __DIR__.'/auth.php';
