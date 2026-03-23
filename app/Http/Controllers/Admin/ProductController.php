@@ -54,27 +54,30 @@ class ProductController extends Controller
             'stock' => $request->stock,
             'is_featured' => $request->has('is_featured'),
             'variants' => $variants,
-            'is_active' => $request->has('is_active') ? true : false
+            'is_active' => $request->has('is_active')
         ]);
 
+        // ✅ STORE IMAGES
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
 
-ProductImage::create([
-    'product_id' => $product->id,
-    'image_path' => $path, // ✅ FIXED
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $path
                 ]);
             }
         }
 
-        return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
+        return redirect()->route('admin.products.index')
+            ->with('success', 'Product created successfully.');
     }
 
     public function edit($id)
     {
         $product = Product::findOrFail($id);
         $categories = Category::all();
+
         return view('admin.products.edit', compact('product', 'categories'));
     }
 
@@ -106,38 +109,50 @@ ProductImage::create([
             'stock' => $request->stock,
             'is_featured' => $request->has('is_featured'),
             'variants' => $variants,
-            'is_active' => $request->has('is_active') ? true : false
+            'is_active' => $request->has('is_active')
         ]);
 
+        // ✅ UPDATE IMAGES (ADD NEW ONES)
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
+
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image' => $path
+                    'image_path' => $path // ✅ FIXED
                 ]);
             }
         }
 
-        return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
+        return redirect()->route('admin.products.index')
+            ->with('success', 'Product updated successfully.');
     }
 
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
+
         foreach ($product->images as $image) {
-            Storage::disk('public')->delete($image->image);
+            Storage::disk('public')->delete($image->image_path); // ✅ FIXED
             $image->delete();
         }
+
         $product->delete();
-        return redirect()->back()->with('success', 'Product deleted successfully.');
+
+        return redirect()->back()
+            ->with('success', 'Product deleted successfully.');
     }
 
     public function toggleFeatured($id)
     {
         $product = Product::findOrFail($id);
+
         $product->is_featured = !$product->is_featured;
         $product->save();
-        return response()->json(['success' => true, 'is_featured' => $product->is_featured]);
+
+        return response()->json([
+            'success' => true,
+            'is_featured' => $product->is_featured
+        ]);
     }
 }
