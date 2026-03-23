@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use App\Models\Order;
 use App\Models\User;
 use App\Models\OrderItem;
@@ -18,17 +16,20 @@ class DashboardController extends Controller
     public function index()
     {
         $totalOrders = Order::count();
-      $totalRevenue = Order::where('payment_status', 'paid')
-    ->sum('total_amount');
+
+        $totalRevenue = Order::where('payment_status', 'paid')
+            ->sum('total_amount');
+
         $totalUsers = User::where('role', 'user')->count();
+
         $totalProductsSold = OrderItem::sum('quantity');
 
         $recentOrders = Order::with('user')->latest()->limit(5)->get();
 
-       $salesData = Order::select(
-    DB::raw('DATE(created_at) as date'),
-    DB::raw('SUM(total_amount) as total')
-)
+        // ✅ FIXED SALES DATA
+        $salesData = Order::select(
+                DB::raw("DATE(created_at) as date"),
+                DB::raw("SUM(total_amount) as total")
             )
             ->where('payment_status', 'paid')
             ->where('created_at', '>=', now()->subDays(7))
@@ -36,24 +37,29 @@ class DashboardController extends Controller
             ->orderBy('date')
             ->get();
 
-        $lowStockProducts = Product::where('stock', '<', 10)->where('is_active', true)->get();
+        $lowStockProducts = Product::where('stock', '<', 10)
+            ->where('is_active', true)
+            ->get();
+
         $pendingReviews = Review::where('is_approved', false)->count();
+
         $pendingReturns = ReturnRequest::where('status', 'pending')->count();
-        
+
         $topProducts = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_sold'))
             ->groupBy('product_id')
             ->orderByDesc('total_sold')
             ->limit(5)
             ->get()
-            ->map(function($item) {
+            ->map(function ($item) {
                 $item->product = Product::find($item->product_id);
                 return $item;
             });
 
+        // ✅ FIXED MONTHLY STATS
         $monthlyStats = Order::select(
-                DB::raw('MONTH(created_at) as month'),
-                DB::raw('SUM(total) as revenue'),
-                DB::raw('COUNT(*) as orders')
+                DB::raw("MONTH(created_at) as month"),
+                DB::raw("SUM(total_amount) as revenue"),
+                DB::raw("COUNT(*) as orders")
             )
             ->where('payment_status', 'paid')
             ->where('created_at', '>=', now()->subMonths(6))
@@ -61,9 +67,17 @@ class DashboardController extends Controller
             ->get();
 
         return view('admin.dashboard', compact(
-            'totalOrders', 'totalRevenue', 'totalUsers', 'totalProductsSold', 
-            'recentOrders', 'salesData', 'lowStockProducts', 'pendingReviews', 
-            'pendingReturns', 'topProducts', 'monthlyStats'
+            'totalOrders',
+            'totalRevenue',
+            'totalUsers',
+            'totalProductsSold',
+            'recentOrders',
+            'salesData',
+            'lowStockProducts',
+            'pendingReviews',
+            'pendingReturns',
+            'topProducts',
+            'monthlyStats'
         ));
     }
 }
