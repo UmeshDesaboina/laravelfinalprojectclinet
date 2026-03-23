@@ -34,7 +34,7 @@ class ProductController extends Controller
             'stock' => 'required|integer',
             'description' => 'nullable|string',
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'variants' => 'nullable|array'
         ]);
 
@@ -62,15 +62,16 @@ class ProductController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
 
-                if ($image) {
-                    $path = $image->store('products', 'public');
-
-                    ProductImage::create([
-                        'product_id' => $product->id,
-                        'image_path' => $path
-                    ]);
+                if (!$image || !$image->isValid()) {
+                    continue;
                 }
 
+                $path = $image->store('products', 'public');
+
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $path
+                ]);
             }
         }
 
@@ -94,7 +95,7 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'stock' => 'required|integer',
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         $product = Product::findOrFail($id);
@@ -123,15 +124,16 @@ class ProductController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
 
-                if ($image) {
-                    $path = $image->store('products', 'public');
-
-                    ProductImage::create([
-                        'product_id' => $product->id,
-                        'image_path' => $path
-                    ]);
+                if (!$image || !$image->isValid()) {
+                    continue;
                 }
 
+                $path = $image->store('products', 'public');
+
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $path
+                ]);
             }
         }
 
