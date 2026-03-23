@@ -26,7 +26,7 @@ class DashboardController extends Controller
 
         $recentOrders = Order::with('user')->latest()->limit(5)->get();
 
-        // ✅ FIXED SALES DATA
+        // ✅ SALES DATA (PostgreSQL compatible)
         $salesData = Order::select(
                 DB::raw("DATE(created_at) as date"),
                 DB::raw("SUM(total_amount) as total")
@@ -55,9 +55,9 @@ class DashboardController extends Controller
                 return $item;
             });
 
-        // ✅ FIXED MONTHLY STATS
+        // ✅ MONTHLY STATS (FIXED FOR POSTGRESQL)
         $monthlyStats = Order::select(
-                DB::raw("MONTH(created_at) as month"),
+                DB::raw("EXTRACT(MONTH FROM created_at) as month"),
                 DB::raw("SUM(total_amount) as revenue"),
                 DB::raw("COUNT(*) as orders")
             )
