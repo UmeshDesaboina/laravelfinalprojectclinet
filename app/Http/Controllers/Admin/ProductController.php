@@ -33,7 +33,8 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'stock' => 'required|integer',
             'description' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'variants' => 'nullable|array'
         ]);
 
@@ -57,15 +58,19 @@ class ProductController extends Controller
             'is_active' => $request->has('is_active')
         ]);
 
-        // ✅ STORE IMAGES
+        // ✅ SAFE IMAGE STORE
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $path = $image->store('products', 'public');
 
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'image_path' => $path
-                ]);
+                if ($image) {
+                    $path = $image->store('products', 'public');
+
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'image_path' => $path
+                    ]);
+                }
+
             }
         }
 
@@ -87,7 +92,9 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
             'category_id' => 'required|exists:categories,id',
-            'stock' => 'required|integer'
+            'stock' => 'required|integer',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         $product = Product::findOrFail($id);
@@ -112,15 +119,19 @@ class ProductController extends Controller
             'is_active' => $request->has('is_active')
         ]);
 
-        // ✅ UPDATE IMAGES (ADD NEW ONES)
+        // ✅ SAFE IMAGE UPDATE
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $path = $image->store('products', 'public');
 
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'image_path' => $path // ✅ FIXED
-                ]);
+                if ($image) {
+                    $path = $image->store('products', 'public');
+
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'image_path' => $path
+                    ]);
+                }
+
             }
         }
 
@@ -133,7 +144,9 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         foreach ($product->images as $image) {
-            Storage::disk('public')->delete($image->image_path); // ✅ FIXED
+            if ($image->image_path) {
+                Storage::disk('public')->delete($image->image_path);
+            }
             $image->delete();
         }
 
