@@ -33,7 +33,7 @@ return new class extends Migration
     {
         if (!Schema::hasColumn('users', 'is_blocked')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->boolean('is_blocked')->default(false)->after('role');
+                $table->boolean('is_blocked')->default(false);
             });
         }
     }
